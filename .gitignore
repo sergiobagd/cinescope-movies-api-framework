@@ -2,3 +2,4 @@
 ./practice
 ./tests/ui
 .venv/
+.env
