@@ -19,18 +19,19 @@ class CustomRequester:
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
-    def send_request(self, method, endpoint, data=None, expected_status=200, need_logging=True):
+    def send_request(self, method, endpoint, data=None, params=None, expected_status=200, need_logging=True):
         """
         Universal method for sending requests
         :param method: HTTP method (GET, POST, PUT, DELETE, etc.)
         :param endpoint: Endpoint (for example: "/login")
         :param data: Request body (JSON data)
+        :param params: Query-params
         :param expected_status: Expected status-code
         :param need_logging: Flag for logging (Default: True)
         :return: Object of response requests.Response
         """
         url = f"{self.base_url}{endpoint}"
-        response = self.session.request(method, url, json=data, headers=self.headers)
+        response = self.session.request(method, url, json=data, params=params, headers=self.headers)
         if need_logging:
             self.log_request_and_response(response)
         if response.status_code != expected_status:
