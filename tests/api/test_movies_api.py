@@ -205,6 +205,7 @@ class TestMoviesAPI:
             assert movie["location"] == 'MSK' or movie["location"] == 'SPB', "Wrong 'location' filter was accepted for request"
             assert 1 <= movie["price"] <= 1000000000, "Wrong 'minimumPrice' and 'maximumPrice' filters were accepted for request"
 
+    @pytest.mark.slow
     def test_try_delete_non_existing_movie(self, super_admin, created_movie_for_deletion_test):
         nonexisting_movie_id = created_movie_for_deletion_test["id"] + 13
         response = super_admin.api.movies_api.delete_movie(nonexisting_movie_id, expected_status=404)
@@ -231,6 +232,7 @@ class TestMoviesAPI:
         assert "message" in response_data
         assert response_data["message"] == "Фильм не найден", "Movie was found"
 
+    @pytest.mark.slow
     def test_try_create_movie_by_common_user(self, common_user, test_movie):
         response = common_user.api.movies_api.create_new_movie(test_movie, expected_status=403)
         response_data = response.json()
@@ -243,6 +245,7 @@ class TestMoviesAPI:
         ("common_admin", 403),
         ("common_user", 403),
     ], ids = ["SuperAdmin", "Admin", "User"])
+    @pytest.mark.slow
     def test_delete_movie_by_different_roles(self, request, user_role, expected_status, created_movie_for_deletion_test):
         user = request.getfixturevalue(user_role)
         user.api.movies_api.delete_movie(created_movie_for_deletion_test["id"], expected_status=expected_status)

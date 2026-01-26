@@ -5,6 +5,7 @@ from utils.data_generator import DataGenerator
 from clients.api_manager import ApiManager
 from entities.user import User
 from resources.user_creds import SuperAdminCreds
+from constants.models import TestUser
 
 
 @pytest.fixture(scope="session")
@@ -53,7 +54,7 @@ def api_manager(session):
     return ApiManager(session)
 
 @pytest.fixture
-def test_user():
+def test_user() -> TestUser:
     """
     Generation of a random user for tests
     """
@@ -61,30 +62,29 @@ def test_user():
     random_name = DataGenerator.generate_random_name()
     random_password = DataGenerator.generate_random_password()
 
-    return {
-        "email": random_email,
-        "fullName": random_name,
-        "password": random_password,
-        "passwordRepeat": random_password,
-        "roles": Roles.USER.value
-    }
+    return TestUser(
+        email=random_email,
+        fullName=random_name,
+        password=random_password,
+        passwordRepeat=random_password,
+        roles=[Roles.USER]
+    )
 
 @pytest.fixture
 def creation_user_data(test_user):
-    updated_data = test_user.copy()
-    updated_data.update({
-        "verified": True,
-        "banned": False
-    })
-    return updated_data
+    updated_user = test_user
+    updated_user.verified = True
+    updated_user.banned = False
+
+    return updated_user
 
 @pytest.fixture
 def common_user(user_session, super_admin, creation_user_data):
     new_session = user_session()
 
     common_user = User(
-        creation_user_data["email"],
-        creation_user_data["password"],
+        creation_user_data.email,
+        creation_user_data.password,
         [Roles.USER.value],
         new_session)
 
@@ -97,8 +97,8 @@ def common_admin(user_session, super_admin, creation_user_data):
     new_session = user_session()
 
     common_admin = User(
-        creation_user_data["email"],
-        creation_user_data["password"],
+        creation_user_data.email,
+        creation_user_data.password,
         [Roles.ADMIN.value],
         new_session
     )
@@ -116,11 +116,12 @@ def registered_user(api_manager: ApiManager, test_user):
     """
     Fixture for registration of user and getting its info.
     """
-    response = api_manager.auth_api.register_user(test_user)
-    response_data = response.json()
-    registered_user = test_user.copy()
-    registered_user["id"] = response_data["id"]
-    return registered_user
+    api_manager.auth_api.register_user(test_user)
+    registered_user_creds = {
+        "email": test_user.email,
+        "password": test_user.password
+    }
+    return registered_user_creds
 
 @pytest.fixture
 def test_movie():
