@@ -1,11 +1,11 @@
-from constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT
+from constants.constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT
 from custom_requester.custom_requester import CustomRequester
+
 
 class AuthAPI(CustomRequester):
     """
     Class for working with authentication
     """
-
     def __init__(self, session):
         super().__init__(session=session, base_url="https://auth.dev-cinescope.coconutqa.ru/")
 
@@ -16,23 +16,23 @@ class AuthAPI(CustomRequester):
         :param expected_status: Expected status-code
         """
         return self.send_request(
-            method = "POST",
-            endpoint = REGISTER_ENDPOINT,
-            data = user_data,
-            expected_status = expected_status
+            method="POST",
+            endpoint=REGISTER_ENDPOINT,
+            data=user_data,
+            expected_status=expected_status
         )
 
-    def login_user(self, login_data, expected_status=201):
+    def login_user(self, login_data, expected_status=200):
         """
         Authentication of the user
         :param login_data: Data for logging in (email, password)
         :param expected_status: Expected status-code
         """
         return self.send_request(
-            method = "POST",
-            endpoint = LOGIN_ENDPOINT,
-            data = login_data,
-            expected_status = expected_status
+            method="POST",
+            endpoint=LOGIN_ENDPOINT,
+            data=login_data,
+            expected_status=expected_status
         )
 
     def authenticate(self, user_creds):
