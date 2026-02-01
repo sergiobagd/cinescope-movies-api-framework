@@ -26,12 +26,19 @@ class TestMoviesAPI:
             assert movie["location"] == 'MSK'
             assert 1 <= movie["price"] <= 500
 
-    def test_create_movie(self, super_admin, test_movie):
-
+    def test_create_movie(self, super_admin, db_helper, test_movie):
+        assert db_helper.get_movie_by_name(test_movie["name"]) is None
         response = super_admin.api.movies_api.create_new_movie(test_movie)
         response_data = response.json()
+        movie = db_helper.get_movie_by_id(response_data["id"])
 
         assert response_data["id"] is not None
+        assert movie.name ==  test_movie["name"]
+        assert movie.price == test_movie["price"]
+        assert movie.id is not None
+
+        response_deletion = super_admin.api.movies_api.delete_movie(response_data["id"]).json()
+        assert db_helper.get_movie_by_id(response_deletion["id"]) is None
 
     def test_get_specific_movie(self, super_admin, created_movie):
         response = super_admin.api.movies_api.get_specific_movie(created_movie["id"])
