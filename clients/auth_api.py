@@ -22,7 +22,7 @@ class AuthAPI(CustomRequester):
             expected_status=expected_status
         )
 
-    def login_user(self, login_data, expected_status=200):
+    def login_user(self, login_data, expected_status=201):
         """
         Authentication of the user
         :param login_data: Data for logging in (email, password)
