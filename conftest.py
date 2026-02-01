@@ -6,7 +6,9 @@ from clients.api_manager import ApiManager
 from entities.user import User
 from resources.user_creds import SuperAdminCreds
 from constants.models import TestUser
-
+from sqlalchemy.orm import Session
+from db_requester.db_client import get_db_session
+from db_requester.db_helpres import DBHelper
 
 @pytest.fixture(scope="session")
 def session():
@@ -16,6 +18,22 @@ def session():
     http_session = requests.Session()
     yield http_session
     http_session.close()
+
+@pytest.fixture
+def db_session() -> Session:
+    """
+    Fixture for creating and returning session to work with DB
+    After finishing test - session automatically closes
+    """
+    database_session = get_db_session()
+    yield database_session
+    database_session.close()
+
+@pytest.fixture
+def db_helper(db_session) -> DBHelper:
+    """Fixture for helper object"""
+    db_helper = DBHelper(db_session)
+    return db_helper
 
 @pytest.fixture
 def user_session():
@@ -110,6 +128,26 @@ def common_admin(user_session, super_admin, creation_user_data):
     super_admin.api.user_api.update_user(new_roles, response["id"])
     common_admin.api.auth_api.authenticate(common_admin.creds)
     return common_admin
+
+@pytest.fixture
+def created_test_user(db_helper):
+    """Fixture for creating test user in DB
+       And delete it after finishing test"""
+    user = db_helper.create_test_user(DataGenerator.generate_user_data())
+    yield user
+    #Clean up after test
+    if db_helper.get_user_by_id(user.id):
+        db_helper.delete_user(user)
+
+@pytest.fixture
+def created_test_movie(db_helper):
+    """Fixture for creating test movie in DB
+       And delete it after finishing test"""
+    movie = db_helper.create_test_movie(DataGenerator.generate_movie_data())
+    yield movie
+    # Clean up after test
+    if db_helper.get_movie_by_id(movie.id):
+        db_helper.delete_movie(movie)
 
 @pytest.fixture
 def registered_user(api_manager: ApiManager, test_user):
