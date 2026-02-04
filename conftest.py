@@ -1,3 +1,5 @@
+import time
+
 import requests
 from constants.roles import Roles
 import pytest
@@ -8,7 +10,7 @@ from resources.user_creds import SuperAdminCreds
 from constants.models import TestUser
 from sqlalchemy.orm import Session
 from db_requester.db_client import get_db_session
-from db_requester.db_helpres import DBHelper
+from db_requester.db_helpers import DBHelper
 
 @pytest.fixture(scope="session")
 def session():
@@ -196,3 +198,7 @@ def created_movie_for_deletion_test(super_admin, test_movie):
     movie = response.json()
     yield movie
 
+@pytest.fixture
+def delay_between_retries():
+    time.sleep(2)
+    yield
