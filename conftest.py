@@ -1,5 +1,4 @@
 import time
-
 import requests
 from constants.roles import Roles
 import pytest
@@ -11,6 +10,11 @@ from constants.models import TestUser
 from sqlalchemy.orm import Session
 from db_requester.db_client import get_db_session
 from db_requester.db_helpers import DBHelper
+from utils.ui_tracing_script import Tools
+from clients.ui_page_object_models import CinescopeLoginPage
+from playwright.sync_api import Page
+
+DEFAULT_UI_TIMEOUT = 30000
 
 @pytest.fixture(scope="session")
 def session():
@@ -202,3 +206,34 @@ def created_movie_for_deletion_test(super_admin, test_movie):
 def delay_between_retries():
     time.sleep(2)
     yield
+
+@pytest.fixture(scope="session")
+def browser(playwright):
+    browser = playwright.chromium.launch(headless=False, slow_mo=50)
+    yield browser
+    browser.close()
+
+@pytest.fixture(scope="function")
+def context(browser):
+    context = browser.new_context()
+    context.tracing.start(screenshots=True, snapshots=True, sources=True)
+    context.set_default_timeout(DEFAULT_UI_TIMEOUT)
+    yield context
+    log_name = f"trace_{Tools.get_timestamp()}.zip"
+    trace_path = Tools.files_dir("playwright_trace", log_name)
+    context.tracing.stop(path=trace_path)
+    context.close()
+
+@pytest.fixture
+def page(context):
+    page = context.new_page()
+    yield page
+    page.close()
+
+@pytest.fixture
+def logged_in_user_in_ui(page: Page, registered_user):
+    login_page = CinescopeLoginPage(page)
+    login_page.open()
+    login_page.login(registered_user["email"], registered_user["password"])
+    return login_page
+
