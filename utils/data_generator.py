@@ -100,3 +100,7 @@ class DataGenerator:
     @staticmethod
     def generate_random_movie_genre_id():
         return faker.random_int(min=1, max=10)
+
+    @staticmethod
+    def generate_random_movie_review_rate():
+        return faker.random_int(min=1, max=5)
