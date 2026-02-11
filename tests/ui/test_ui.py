@@ -10,7 +10,6 @@ import pytest
 @pytest.mark.ui
 class TestRegisterPage:
     @allure.title("Successful registration by UI")
-    @pytest.mark.ui
     @pytest.mark.positive
     def test_register_by_ui(self, page: Page):
         register_page = CinescopeRegisterPage(page)
@@ -34,7 +33,6 @@ class TestRegisterPage:
 @pytest.mark.ui
 class TestLoginPage:
     @allure.title("Successful login by UI")
-    @pytest.mark.ui
     @pytest.mark.positive
     def test_login_by_ui(self, page: Page, registered_user):
         login_page = CinescopeLoginPage(page)
@@ -55,21 +53,18 @@ class TestLoginPage:
 @pytest.mark.ui
 class TestMoviePage:
     @allure.title("Successful adding review for movie by UI")
-    @pytest.mark.ui
     @pytest.mark.positive
-    def test_add_review_for_movie_by_ui(self, page: Page, logged_in_user_in_ui):
+    def test_add_review_for_movie_by_ui(self, page: Page, logged_in_user_in_ui, created_movie, movie_review_params):
 
         movie_page = CinescopeMoviePage(page)
 
-        movie_page.assert_home_page_heading()
+        movie_page.open_movie_page(created_movie["id"])
 
-        movie_page.click_first_movie()
+        movie_page.assert_movie_page(created_movie["name"])
 
-        movie_page.assert_movie_page()
+        movie_page.add_review_for_movie(movie_review_params["review_text"], movie_review_params["review_rate"])
 
-        movie_page.add_review_for_movie()
-
-        movie_page.assert_review_appeared()
+        movie_page.assert_review_appeared(movie_review_params["review_text"], movie_review_params["review_rate"])
 
 
 
