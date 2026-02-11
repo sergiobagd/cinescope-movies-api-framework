@@ -11,10 +11,25 @@ from sqlalchemy.orm import Session
 from db_requester.db_client import get_db_session
 from db_requester.db_helpers import DBHelper
 from utils.ui_tracing_script import Tools
-from clients.ui_page_object_models import CinescopeLoginPage
+from pages.login_page import CinescopeLoginPage
 from playwright.sync_api import Page
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+def headless_env_str_to_bool(headless_mode: str) -> bool:
+    if headless_mode == "True":
+        headless_mode = True
+    elif headless_mode == "False":
+        headless_mode = False
+    return headless_mode
+
+HEADLESS_MODE = os.getenv("HEADLESS_MODE")
 
 DEFAULT_UI_TIMEOUT = 30000
+
 
 @pytest.fixture(scope="session")
 def session():
@@ -209,7 +224,8 @@ def delay_between_retries():
 
 @pytest.fixture(scope="session")
 def browser(playwright):
-    browser = playwright.chromium.launch(headless=False, slow_mo=50)
+    headless_mode = headless_env_str_to_bool(HEADLESS_MODE)
+    browser = playwright.chromium.launch(headless=headless_mode, slow_mo=50)
     yield browser
     browser.close()
 
@@ -235,5 +251,12 @@ def logged_in_user_in_ui(page: Page, registered_user):
     login_page = CinescopeLoginPage(page)
     login_page.open()
     login_page.login(registered_user["email"], registered_user["password"])
-    return login_page
+    return page
 
+@pytest.fixture
+def movie_review_params():
+    review_params = {
+        "review_text": DataGenerator.generate_random_movie_description(),
+        "review_rate":  f"{DataGenerator.generate_random_movie_review_rate()}"
+    }
+    return review_params
