@@ -1,5 +1,7 @@
 from playwright.sync_api import Page
-from clients.ui_page_object_models import CinescopeRegisterPage, CinescopeLoginPage, CinescopeMoviePage, BasePage
+from pages.register_page import CinescopeRegisterPage
+from pages.login_page import CinescopeLoginPage
+from pages.movie_page import CinescopeMoviePage
 from utils.data_generator import DataGenerator
 import allure
 import pytest
