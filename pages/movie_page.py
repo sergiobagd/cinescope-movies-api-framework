@@ -1,6 +1,6 @@
 from playwright.sync_api import Page, expect
 import allure
-from base_page import BasePage
+from pages.base_page import BasePage
 
 class CinescopeMoviePage(BasePage):
     def __init__(self, page: Page):
@@ -13,7 +13,7 @@ class CinescopeMoviePage(BasePage):
         self.review_card = self.page.get_by_role("main")
         self.review_header = self.page.get_by_role("heading", name="Отзывы:")
 
-    @allure.step("Opening login page")
+    @allure.step("Opening movie page")
     def open_movie_page(self, movie_id):
         """Going to movie page"""
         self.open_url(f"{self.home_url}movies/{movie_id}")
