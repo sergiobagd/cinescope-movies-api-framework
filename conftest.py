@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def headless_env_str_to_bool(headless_mode: str) -> bool:
     if headless_mode == "True":
         headless_mode = True
@@ -26,7 +27,8 @@ def headless_env_str_to_bool(headless_mode: str) -> bool:
         headless_mode = False
     return headless_mode
 
-HEADLESS_MODE = os.getenv("HEADLESS_MODE")
+
+HEADLESS_MODE = os.getenv("HEADLESS_MODE", "True")
 
 DEFAULT_UI_TIMEOUT = 30000
 
