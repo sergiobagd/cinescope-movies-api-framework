@@ -1,4 +1,10 @@
+import datetime
+import pytest_check as check
+import allure
+from pytest_mock import mocker
+from constants.models import TestUser
 from clients.api_manager import ApiManager
+from constants.roles import Roles
 from constants.models import RegisterUserResponse, AuthenticatedUserResponse
 
 
@@ -13,6 +19,39 @@ class TestAuthAPI:
         registered_user_response = RegisterUserResponse(**response_data)
 
         assert test_user.email == registered_user_response.email, "Emails are not equal"
+
+    @allure.title("Test of user registration using mocker")
+    @allure.severity(allure.severity_level.MINOR)
+    @allure.label("qa_name", "Ivan Petrovich")
+    def test_register_user_mock(self, api_manager: ApiManager, test_user: TestUser, mocker):
+        with allure.step("Fake response from mock service"):
+            mock_response = RegisterUserResponse(
+                id = "id",
+                email = "email@email.com",
+                fullName = "fullName",
+                verified = True,
+                banned = False,
+                roles = [Roles.SUPER_ADMIN],
+                createdAt = str(datetime.datetime.now())
+            )
+
+        with allure.step("Mock method register_user in auth_api"):
+            mocker.patch.object(
+                api_manager.auth_api, # Object we mock
+                'register_user', # Method we mock
+                return_value=mock_response # Fake response
+            )
+
+        with allure.step("Call method which need to be mocked"):
+            register_user_response = api_manager.auth_api.register_user(test_user)
+
+        with allure.step("Check that response matches expected mocked response"):
+            with allure.step("Check personal data"):
+                check.equal(register_user_response.email, mock_response.email)
+                check.equal(register_user_response.fullName, "INCORRECT FULL NAME", "NAMES DON'T MATCHING")
+
+            with allure.step("Check field 'banned'"):
+                check.equal(register_user_response.banned, mock_response.banned)
 
 
     def test_register_and_authenticate_user(self, api_manager: ApiManager, registered_user):

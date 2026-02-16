@@ -1,9 +1,45 @@
+import datetime
 import random
 import string
 from faker import Faker
+from uuid import uuid4
+from constants.roles import Roles
 faker = Faker()
 
 class DataGenerator:
+
+    @staticmethod
+    def generate_user_data() -> dict:
+        """Generates data for test user"""
+
+        return {
+            "id": f"{uuid4()}", # Generate UUID as string
+            "email": DataGenerator.generate_random_email(),
+            "full_name": DataGenerator.generate_random_name(),
+            "password": DataGenerator.generate_random_password(),
+            "created_at": datetime.datetime.now(),
+            "updated_at": datetime.datetime.now(),
+            "verified": False,
+            "banned": False,
+            "roles": f"{{{Roles.USER.value}}}"
+        }
+
+    @staticmethod
+    def generate_movie_data() -> dict:
+        """Generates data for test user"""
+
+        return {
+            "id": faker.random_int(min=1, max=50000),
+            "name": DataGenerator.generate_random_email(),
+            "price": DataGenerator.generate_random_movie_price(),
+            "description": DataGenerator.generate_random_movie_description(),
+            "image_url": DataGenerator.generate_random_movie_image_url(),
+            "location": DataGenerator.generate_random_movie_location(),
+            "published": True,
+            "rating": faker.random_int(min=1, max=5),
+            "genre_id": DataGenerator.generate_random_movie_genre_id(),
+            "created_at": datetime.datetime.now(),
+        }
 
     @staticmethod
     def generate_random_email():
