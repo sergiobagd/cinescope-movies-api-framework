@@ -1,5 +1,4 @@
 import time
-
 import requests
 from constants.roles import Roles
 import pytest
@@ -11,6 +10,28 @@ from constants.models import TestUser
 from sqlalchemy.orm import Session
 from db_requester.db_client import get_db_session
 from db_requester.db_helpers import DBHelper
+from utils.ui_tracing_script import Tools
+from pages.login_page import CinescopeLoginPage
+from playwright.sync_api import Page
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+
+def headless_env_str_to_bool(headless_mode: str) -> bool:
+    if headless_mode == "True":
+        headless_mode = True
+    elif headless_mode == "False":
+        headless_mode = False
+    return headless_mode
+
+
+HEADLESS_MODE = os.getenv("HEADLESS_MODE", "True")
+
+DEFAULT_UI_TIMEOUT = 30000
+
 
 @pytest.fixture(scope="session")
 def session():
@@ -202,3 +223,42 @@ def created_movie_for_deletion_test(super_admin, test_movie):
 def delay_between_retries():
     time.sleep(2)
     yield
+
+@pytest.fixture(scope="session")
+def browser(playwright):
+    headless_mode = headless_env_str_to_bool(HEADLESS_MODE)
+    browser = playwright.chromium.launch(headless=headless_mode, slow_mo=50)
+    yield browser
+    browser.close()
+
+@pytest.fixture(scope="function")
+def context(browser):
+    context = browser.new_context()
+    context.tracing.start(screenshots=True, snapshots=True, sources=True)
+    context.set_default_timeout(DEFAULT_UI_TIMEOUT)
+    yield context
+    log_name = f"trace_{Tools.get_timestamp()}.zip"
+    trace_path = Tools.files_dir("playwright_trace", log_name)
+    context.tracing.stop(path=trace_path)
+    context.close()
+
+@pytest.fixture
+def page(context):
+    page = context.new_page()
+    yield page
+    page.close()
+
+@pytest.fixture
+def logged_in_user_in_ui(page: Page, registered_user):
+    login_page = CinescopeLoginPage(page)
+    login_page.open()
+    login_page.login(registered_user["email"], registered_user["password"])
+    return page
+
+@pytest.fixture
+def movie_review_params():
+    review_params = {
+        "review_text": DataGenerator.generate_random_movie_description(),
+        "review_rate":  f"{DataGenerator.generate_random_movie_review_rate()}"
+    }
+    return review_params
